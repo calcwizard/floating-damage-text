@@ -5,6 +5,6 @@
 	"title": "Floating Damage Text",
 	"author": "calcwizard",
 	"homepage": "",
-	"dependencies": ["base"],
-	"description": "Damage dealt the enemies and structures appear as floating text above their head."
+	"dependencies": ,
+	"description": "Damage dealt to enemies and structures appear as floating text above their heads."
 }

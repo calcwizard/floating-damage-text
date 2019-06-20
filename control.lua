@@ -11,7 +11,7 @@ script.on_event(defines.events.on_entity_damaged, function(event)
     local entity_position = damaged_entity.position
 
     local text_color = {200,200,200}
-    if damaged_entity.force.name == "enemy" or damaged_entity.type == "character" then
+    if damaged_entity.type == "unit" or  damaged_entity.type == "unit-spawner" or damaged_entity.type == "character" then
       text_color = {255,0,0}
     end
 
