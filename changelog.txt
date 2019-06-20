@@ -1,0 +1,5 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.17.1
+Date: 2019-06-20
+  Features:
+    - Dealing damage to entities creates flying numbers above that entity.
