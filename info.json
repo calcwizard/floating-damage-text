@@ -1,10 +1,10 @@
 {
 	"name": "floating-damage-text",
-	"version": "0.17.1",
+	"version": "0.17.2",
 	"factorio_version": "0.17",
-	"title": "Floating Damage Text",
+	"title": "Floating Damage Indicators",
 	"author": "calcwizard",
 	"homepage": "",
-	"dependencies": ,
-	"description": "Damage dealt to enemies and structures appear as floating text above their heads."
+	"dependencies": [],
+	"description": "Damage dealt to enemies and structures appear as floating text above their heads.  Highly customizable."
 }
