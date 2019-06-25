@@ -5,15 +5,25 @@ local config
 -- converts the string from the settings to a Type/Color structure
 -- returns {r, g, b} if valid or nil if invalid
 function stringToColors (colorString)
+  local valid = true
   _, _, r_str, g_str, b_str = string.find(colorString, "%s*(%d+%.?%d*)%s*,%s*(%d+%.?%d*)%s*,%s*(%d+%.?%d*)%s*")
   local num = {r = tonumber(r_str), g = tonumber(g_str), b = tonumber(b_str)}
+  if not num or not next(num) then 
+    valid = false
+  end
+
+  --game.print(num.r .. " " .. num.g .. " " .. num.b)
   for _, thisNum in pairs(num) do
       if thisNum == nil or thisNum > 255 or thisNum < 0 then
-        game.print({"", "[", {"mod-name.floating-damage-text"}, "] Invalid color string.  Setting wasn't changed."})
-        return nil
+        valid = false
       end
   end
-  return num
+  if valid then 
+    return num
+  else
+    game.print({"", "[", {"mod-name.floating-damage-text"}, "] Invalid color string.  Setting wasn't changed."})
+    return nil
+  end
 end
 
 
@@ -33,21 +43,9 @@ function localizeSettings()
   config = global.settings
 end
 
-script.on_init(function(event) globalizeSettings() end)
-script.on_load(function(event) localizeSettings() end)
-script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
-  if global.settings[event.setting] then
-    if string.find(event.setting, "color") then
-      global.settings[event.setting] = stringToColors(settings.global[event.setting].value) or global.settings[event.setting]
-    else
-      global.settings[event.setting] = settings.global[event.setting].value
-    end
-  end
-end)
-
 script.on_event(defines.events.on_entity_damaged, function(event)
   if not config then
-    game.print({"", "[", {"mod-name.floating-damage-text"}, "] The local settings table wasn't initialized."})
+    game.print({"", "[", {"mod-name.floating-damage-text"}, "] The local settings table wasn't initialized.  Please report this to the mod author."})
     script.on_event(defines.events.on_entity_damaged, nil)
     return
   end
@@ -65,5 +63,35 @@ script.on_event(defines.events.on_entity_damaged, function(event)
     entity_position.y = entity_position.y - 2 + math.random()
     entity_position.x = entity_position.x - 1 + math.random()
     damaged_entity.surface.create_entity{name="flying-text", position=entity_position, text=string.format(config["floating-damage-string-format"],event.final_damage_amount,event.damage_type.name), color=text_color}
+  end
+end)
+
+
+-- event handlers
+
+script.on_init(function(event) globalizeSettings() end)
+script.on_load(function(event) localizeSettings() end)
+
+script.on_configuration_changed(function(event)
+  local changed = event.mod_changes and event.mod_changes["floating-damage-text"]
+
+  if changed then
+    globalizeSettings()
+  end
+end)
+
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
+  if global.settings[event.setting] then
+    if string.find(event.setting, "color") then
+      local newColor = stringToColors(settings.global[event.setting].value)
+      if newColor then
+        global.settings[event.setting] = newColor
+      else
+        local colorString = "" .. global.settings[event.setting].r .. "," .. global.settings[event.setting].g .. "," .. global.settings[event.setting].b
+        settings.global[event.setting] = {value = colorString}
+      end
+    else
+      global.settings[event.setting] = settings.global[event.setting].value
+    end
   end
 end)
