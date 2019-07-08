@@ -7,8 +7,15 @@ data:extend({
 		name = "floating-damage-string-format",
 		setting_type = "runtime-global",
 		default_value = "%.4g",
-		order = "d[alphabet]-[format]",
-		per_user = false,
+		order = "d[alpha]-[format]",
+	},
+	{
+		type = "string-setting",
+		name = "floating-integer-rounding",
+		setting_type = "runtime-global",
+		default_value = "nearest",
+		allowed_values = { "floor", "nearest", "ceiling" },
+		order = "d[alpha]-[rounding]",		
 	},
 	{
 		type = "string-setting",
@@ -16,7 +23,6 @@ data:extend({
 		setting_type = "runtime-global",
 		default_value = "255,127,0",
 		order = "d[color]-[ally]",
-		per_user = false,
 	},
 	{
 		type = "string-setting",
@@ -24,7 +30,6 @@ data:extend({
 		setting_type = "runtime-global",
 		default_value = "200,0,0",
 		order = "d[color]-[enemy]",
-		per_user = false,
 	},
 	{
 		type = "string-setting",
@@ -32,18 +37,8 @@ data:extend({
 		setting_type = "runtime-global",
 		default_value = "200,200,200",
 		order = "d[color]-[neutral]",
-		per_user = false,
 	},
-	--[[
-	{
-		type = "string-setting",
-		name = "floating-healing-color",
-		setting_type = "runtime-global",
-		default_value = "0,255,0",
-		order = "h[Color]",
-		per_user = false,
-	},
-	]]
+	
 
 })
 

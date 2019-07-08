@@ -1,6 +1,8 @@
+require("util")
 
 local config
-
+local ROUNDING = {["floor"] = 0, ["nearest"] = 0.5, ["ceiling"] = 0.99999}
+local rounding_value
 
 -- converts the string from the settings to a Type/Color structure
 -- returns {r, g, b} if valid or nil if invalid
@@ -31,6 +33,7 @@ end
 function globalizeSettings()
   global.settings = {
       ["floating-damage-string-format"] = settings.global["floating-damage-string-format"].value,
+      ["floating-integer-rounding"] = settings.global["floating-integer-rounding"].value,
       ["floating-ally-damage-color"] = stringToColors(settings.global["floating-ally-damage-color"].value) or {r = 255, g = 127, b = 0}, --settings.global["floating-damage-string-format"].value
       ["floating-enemy-damage-color"] = stringToColors(settings.global["floating-enemy-damage-color"].value) or {r = 200, g = 0, b = 0}, --settings.global["floating-damage-string-format"].value
       ["floating-neutral-damage-color"] = stringToColors(settings.global["floating-neutral-damage-color"].value) or {r = 200, g = 200, b = 200}, --settings.global["floating-damage-string-format"].value
@@ -40,7 +43,9 @@ function globalizeSettings()
 end
 
 function localizeSettings()
-  config = global.settings
+  --config = global.settings
+  config = util.table.deepcopy(global.settings)
+  rounding_value = (string.find(config["floating-damage-string-format"], "%%%S*[iduoxX]") and ROUNDING[config["floating-integer-rounding"]] or 0)
 end
 
 script.on_event(defines.events.on_entity_damaged, function(event)
@@ -52,6 +57,8 @@ script.on_event(defines.events.on_entity_damaged, function(event)
   if(event.final_damage_amount > 0) then
     local damaged_entity = event.entity
     local entity_position = damaged_entity.position
+    --local damage_amount = event.final_damage_amount + (string.find(config["floating-damage-string-format"], "%%%S*[iduoxX]") and ROUNDING[config["floating-integer-rounding"]] or 0)
+    local damage_amount = event.final_damage_amount + rounding_value
 
     local text_color = config["floating-neutral-damage-color"]
     if damaged_entity.type == "character" or damaged_entity.type == "car" then
@@ -62,7 +69,7 @@ script.on_event(defines.events.on_entity_damaged, function(event)
 
     entity_position.y = entity_position.y - 2 + math.random()
     entity_position.x = entity_position.x - 1 + math.random()
-    damaged_entity.surface.create_entity{name="flying-text", position=entity_position, text=string.format(config["floating-damage-string-format"],event.final_damage_amount,event.damage_type.name), color=text_color}
+    damaged_entity.surface.create_entity{name="flying-text", position=entity_position, text=string.format(config["floating-damage-string-format"],damage_amount,event.damage_type.name), color=text_color}
   end
 end)
 
@@ -93,5 +100,6 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
     else
       global.settings[event.setting] = settings.global[event.setting].value
     end
+    localizeSettings()
   end
 end)
