@@ -1,8 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.17.4
-Date: 2019-07-08
+Date: 2019-07-16
   Minor Features:
-    - Added an option for rounding formatted integers up.
+    - Added an option for rounding numbers to a configurable number of digits.
+    - Numbers small enough to be rounded to zero based on the rounding setting will instead be rounded up to the smallest non-zero number.
+  Changes:
+    - Changed the default format string to work well with the changes to rounding.  Players who used the old default will have the setting updated, but other players will have to update it themselves.
 ---------------------------------------------------------------------------------------------------
 Version: 0.17.3
 Date: 2019-06-25
