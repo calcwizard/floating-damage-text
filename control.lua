@@ -29,7 +29,9 @@ end
 
 -- returns num rounded to the nearest multiple of scale with a minimum value of scale
 function round_or_floor(num, scale)
-  return (num < scale and scale or math.floor(num / scale + 0.5) * scale)
+  if num then
+    return (num < scale and scale or math.floor(num / scale + 0.5) * scale)
+  end
 end
 
 
@@ -43,7 +45,8 @@ function globalize_settings()
       ["floating-ally-damage-color"] = stringToColors(settings.global["floating-ally-damage-color"].value) or {r = 255, g = 127, b = 0}, --settings.global["floating-damage-string-format"].value
       ["floating-enemy-damage-color"] = stringToColors(settings.global["floating-enemy-damage-color"].value) or {r = 200, g = 0, b = 0}, --settings.global["floating-damage-string-format"].value
       ["floating-neutral-damage-color"] = stringToColors(settings.global["floating-neutral-damage-color"].value) or {r = 200, g = 200, b = 200}, --settings.global["floating-damage-string-format"].value
-      --["floating-healing-color"] = stringToColors(settings.global["floating-healing-color"].value) or {r = 0, g = 255, b = 0},
+      ["floating-healing-string-format"] = settings.global["floating-healing-string-format"].value,
+      ["floating-healing-color"] = stringToColors(settings.global["floating-healing-color"].value) or {r = 0, g = 255, b = 0},
   }
   localize_settings()
 end
@@ -71,13 +74,48 @@ function display_damage_text(event)
 
     entity_position.y = entity_position.y - 2 + math.random()
     entity_position.x = entity_position.x - 1 + math.random()
-    damaged_entity.surface.create_entity{name="flying-text", position=entity_position, text=string.format(config["floating-damage-string-format"],damage_amount,event.damage_type.name), color=text_color}
+    damaged_entity.surface.create_entity{name="flying-damage-text", position=entity_position, text=string.format(config["floating-damage-string-format"],damage_amount,event.damage_type.name), color=text_color}
 end
+
+function display_healing_text(entity, deltaHealth)
+    local entityPosition = entity.position
+    local healingAmount = round_or_floor(deltaHealth, rounding_value)
+
+    entityPosition.y = entityPosition.y - 2 + math.random()
+    entityPosition.x = entityPosition.x - 1 + math.random()
+    entity.surface.create_entity{name="flying-healing-text", position=entityPosition, text=string.format(config["floating-healing-string-format"],healingAmount), color=config["floating-healing-color"]}
+end
+
+function iterate_damage_table(event)
+  for entityNum,oldHealth in pairs(global.entity_health) do
+    local entity = global.entities[entityNum]
+    if entity.valid then
+      if entity.health > oldHealth then
+        display_healing_text(entity, entity.health-oldHealth)
+        global.entity_health[entityNum] = entity.health
+      elseif entity.health < oldHealth then
+        global.entity_health[entityNum] = entity.health
+      elseif entity.get_health_ratio() == 1 then
+        global.entity_health[entityNum] = nil
+        game.print("entity removed for having full health")
+      end
+    else
+      global.entity_health[entityNum] = nil
+      game.print("entity removed for being invalid")
+    end
+  end
+end
+
+
 
 
 -- event handlers
 
-script.on_init(function(event) globalize_settings() end)
+script.on_init(function(event) 
+  globalize_settings() 
+  global.entity_health = {}
+  global.entities = {}
+end)
 script.on_load(function(event) localize_settings() end)
 
 script.on_configuration_changed(function(event)
@@ -89,6 +127,10 @@ script.on_configuration_changed(function(event)
         settings.global["floating-damage-string-format"] = {value = "%s"}
       end
       game.print({"", "[", {"mod-name.floating-damage-text"}, "] Default mod settings have been changed."})
+    end
+    if is_version_older_than(changed.old_version, "0.17.5") then
+      global.entities = {}
+      global.entity_health = {}
     end
 
     globalize_settings()
@@ -121,5 +163,32 @@ script.on_event(defines.events.on_entity_damaged, function(event)
     script.on_event(defines.events.on_entity_damaged, nil)
     return
   end
-  if(event.final_damage_amount > 0) then display_damage_text(event) end
+  if(event.final_damage_amount > 0) then 
+    display_damage_text(event) 
+    if event.entity.health > 0 and event.entity.unit_number then
+      global.entities[event.entity.unit_number] = event.entity
+      global.entity_health[event.entity.unit_number] = event.entity.health
+    end
+  end
 end)
+
+script.on_nth_tick(settings.global["floating-healing-interval"].value, function(event) iterate_damage_table(event) end)
+
+
+
+
+
+
+
+
+function addToSet(set, key)
+    set[key] = true
+end
+
+function removeFromSet(set, key)
+    set[key] = nil
+end
+
+function setContains(set, key)
+    return set[key] ~= nil
+end

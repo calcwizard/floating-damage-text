@@ -1,6 +1,26 @@
 
 data:extend({ 	
 
+	-- startup
+	{
+		type = "int-setting",
+		name = "floating-damage-lifetime",
+		setting_type = "startup",
+		default_value = 120,
+		minimum_value = 1,
+		order = "da-[life]"
+	},
+	{
+		type = "double-setting",
+		name = "floating-damage-velocity",
+		setting_type = "startup",
+		default_value = 3,
+		order = "da-[velocity]"
+	},
+
+
+
+
 	-- runtime global
    {
 		type = "string-setting",
@@ -40,14 +60,28 @@ data:extend({
 		default_value = "200,200,200",
 		order = "db-[color-neutral]",
 	},
-	--[[
+	{
+		type = "string-setting",
+		name = "floating-healing-string-format",
+		setting_type = "runtime-global",
+		default_value = "%s",
+		allow_blank = true,
+		order = "ha-[format]",
+	},
 	{
 		type = "string-setting",
 		name = "floating-healing-color",
 		setting_type = "runtime-global",
 		default_value = "0,255,0",
-		order = "h[color]",
+		order = "hb-[color]",
 	},
-	]]
+	{
+		type = "int-setting",
+		name = "floating-healing-interval",
+		setting_type = "runtime-global",
+		default_value = 60,
+		minimum_value = 1,
+		order = "hc-[interval]",		
+	},
 })
 
