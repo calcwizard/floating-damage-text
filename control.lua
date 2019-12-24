@@ -34,9 +34,6 @@ function round_or_floor(num, scale)
   end
 end
 
-
-
-
 -- mirrors the mod's settings to the global table
 function globalize_settings()
   global.settings = {
@@ -89,48 +86,60 @@ end
 function iterate_damage_table(event)
   for entityNum,oldHealth in pairs(global.entity_health) do
     local entity = global.entities[entityNum]
-    if entity.valid then
-      if entity.health > oldHealth then
+    if entity and entity.valid then
+      if entity.health - oldHealth >= rounding_value then
         display_healing_text(entity, entity.health-oldHealth)
         global.entity_health[entityNum] = entity.health
       elseif entity.health < oldHealth then
         global.entity_health[entityNum] = entity.health
-      elseif entity.get_health_ratio() == 1 then
-        global.entity_health[entityNum] = nil
-        game.print("entity removed for having full health")
       end
+      
+      -- remove entities that have full health
+      if entity.get_health_ratio() == 1 then
+        global.entity_health[entityNum] = nil
+        global.entities[entityNum] = nil
+      end
+
+    -- remove entities that are no longer valid (usually they're dead)
     else
       global.entity_health[entityNum] = nil
-      game.print("entity removed for being invalid")
+      global.entities[entityNum] = nil
     end
   end
 end
 
-
+function register_events()
+  script.on_nth_tick(nil)
+  script.on_nth_tick(settings.global["floating-healing-interval"].value, iterate_damage_table)
+end
 
 
 -- event handlers
 
 script.on_init(function(event) 
-  globalize_settings() 
+  globalize_settings()
+  register_events() 
   global.entity_health = {}
   global.entities = {}
 end)
-script.on_load(function(event) localize_settings() end)
+script.on_load(function(event) 
+  localize_settings() 
+  register_events()
+end)
 
 script.on_configuration_changed(function(event)
   local changed = event.mod_changes and event.mod_changes["floating-damage-text"]
 
   if changed then
+    if not global.entities then global.entities = {} end
+    if not global.entity_health then global.entity_health = {} end
+    if not global.settings then global.settings = {} end
+
     if is_version_older_than(changed.old_version, "0.17.4") then
       if settings.global["floating-damage-string-format"].value == "%.4g" then
         settings.global["floating-damage-string-format"] = {value = "%s"}
       end
       game.print({"", "[", {"mod-name.floating-damage-text"}, "] Default mod settings have been changed."})
-    end
-    if is_version_older_than(changed.old_version, "0.17.5") then
-      global.entities = {}
-      global.entity_health = {}
     end
 
     globalize_settings()
@@ -154,6 +163,8 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
       global.settings[event.setting] = settings.global[event.setting].value
     end
     localize_settings()
+  elseif event.setting == "floating-healing-interval" then
+    register_events()
   end
 end)
 
@@ -164,31 +175,12 @@ script.on_event(defines.events.on_entity_damaged, function(event)
     return
   end
   if(event.final_damage_amount > 0) then 
+    local unit_number = event.entity.unit_number
+    local health = event.entity.health
     display_damage_text(event) 
-    if event.entity.health > 0 and event.entity.unit_number then
-      global.entities[event.entity.unit_number] = event.entity
-      global.entity_health[event.entity.unit_number] = event.entity.health
+    if health > 0 and unit_number then
+      global.entities[unit_number] = event.entity
+      global.entity_health[unit_number] = global.entity_health[unit_number] and global.entity_health[unit_number] - event.final_damage_amount or health
     end
   end
 end)
-
-script.on_nth_tick(settings.global["floating-healing-interval"].value, function(event) iterate_damage_table(event) end)
-
-
-
-
-
-
-
-
-function addToSet(set, key)
-    set[key] = true
-end
-
-function removeFromSet(set, key)
-    set[key] = nil
-end
-
-function setContains(set, key)
-    return set[key] ~= nil
-end

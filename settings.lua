@@ -6,7 +6,7 @@ data:extend({
 		type = "int-setting",
 		name = "floating-damage-lifetime",
 		setting_type = "startup",
-		default_value = 120,
+		default_value = 30,
 		minimum_value = 1,
 		order = "da-[life]"
 	},
@@ -14,7 +14,7 @@ data:extend({
 		type = "double-setting",
 		name = "floating-damage-velocity",
 		setting_type = "startup",
-		default_value = 3,
+		default_value = 0.5,
 		order = "da-[velocity]"
 	},
 

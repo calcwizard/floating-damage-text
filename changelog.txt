@@ -1,4 +1,18 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.17.6
+Date: 2019-12-23
+  Bugfixes:
+    - Fixed a memory leak caused by entities not being culled properly when their health is no longer tracked.
+---------------------------------------------------------------------------------------------------
+Version: 0.17.5
+Date: 2019-09-01
+  Features:
+    - Displays increases in entities' health.
+  Minor Features:
+    - Text velocity and lifetime can be customized.  These are startup settings and require a restart to take effect.
+  Changes:
+    - Text lifetime has been shortened to look better thanks to the new customization options.
+---------------------------------------------------------------------------------------------------
 Version: 0.17.4
 Date: 2019-07-16
   Minor Features:
